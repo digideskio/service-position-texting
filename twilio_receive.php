@@ -12,7 +12,7 @@ $body = strtoupper(trim($_REQUEST['Body']));
 // Process response
 if($body == 'YES')
 {
-	$sayings = array('Sounds great boss!', 'Awesome, have a great rest of the day!', 'Roger that. Over and out.', 'Thanks for letting us know!', 'See you there!', 'Aight, sounds good yo\'', 'Boggus is proud.', 'Perfect! Thanks.', 'Got it, we\'ll see you there.');
+	$sayings = array('Sounds great boss!', 'Awesome, have a great rest of the day!', 'Roger that. Over and out.', 'Thanks for letting us know!', 'See you there!', 'Aight, sounds good yo\'', 'Ronny is proud.', 'Perfect! Thanks.', 'Got it, we\'ll see you there.');
 	assignmentsConfirmedTextYes($cell_phone);
 	respond($sayings[rand(0, count($sayings) - 1)].PHP_EOL.'-FWCM');
 }
