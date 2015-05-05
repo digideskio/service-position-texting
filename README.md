@@ -7,5 +7,5 @@ Those in charge of organizing leaders can access the software by visiting [texti
 ## Created by and maintainer
 This software was initially developed in 2015 by [@WesCossick](https://www.github.com/WesCossick). It is still being maintained by him. This will be passed down eventually to the next maintainer.
 
-## Copyright
+## License
 For files that do not belong to third party libraries, templates, etc., the MIT license applies.
