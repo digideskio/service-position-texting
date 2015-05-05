@@ -1,4 +1,5 @@
 <?php
+require_once($_SERVER['DOCUMENT_ROOT'].'/config/variables.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/config/database.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/database-functions.php');
 require_once($_SERVER['DOCUMENT_ROOT'].'/includes/twilio-functions.php');
