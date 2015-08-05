@@ -696,7 +696,7 @@ function assignmentsConfirmedTextYes($cell_phone){
 // Function to set was there to no
 function assignmentsConfirmedTextNo($cell_phone){
 	// Set global
-	global $PDO;
+	global $PDO, $BASE_PATH;
 	
 	
 	// Database call
@@ -718,9 +718,24 @@ function assignmentsConfirmedTextNo($cell_phone){
 	$statement->execute($params);
 	
 	
-	// Alert Ruth
+	// Get notify number
+	$notify_number = preg_replace('/[^0-9]/', '', file_get_contents($BASE_PATH.'/config/number.txt'));
+	
+	
+	// Alert notify number
 	if($row['first_name'] != '')
-		send_sms($NOTIFY_NUMBER, $row['first_name'].' said they couldn\'t fill their position. -FWCM');
+		send_sms($notify_number, $row['first_name'].' said they couldn\'t fill their position. -FWCM');
+}
+
+
+// Change notify number
+function notifyNumberEdit($number){
+	// Set global
+	global $PDO, $BASE_PATH;
+	
+	
+	// Set notify number
+	file_put_contents($BASE_PATH.'/config/number.txt', preg_replace('/[^0-9]/', '', $number));
 }
 
 

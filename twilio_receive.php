@@ -1,8 +1,8 @@
 <?php
 require_once($_SERVER['DOCUMENT_ROOT'].'/config/variables.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/config/database.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/database-functions.php');
-require_once($_SERVER['DOCUMENT_ROOT'].'/includes/twilio-functions.php');
+require_once($BASE_PATH.'/config/database.php');
+require_once($BASE_PATH.'/includes/database-functions.php');
+require_once($BASE_PATH.'/includes/twilio-functions.php');
 
 
 // Get data
@@ -30,10 +30,10 @@ else
 
 // Respond
 function respond($msg){
-    echo '<?xml version="1.0" encoding="UTF-8"?>';
-    echo '<Response>';
+	echo '<?xml version="1.0" encoding="UTF-8"?>';
+	echo '<Response>';
 		echo '<Message>'.$msg.'</Message>';
-    echo '</Response>';
-    exit;
+	echo '</Response>';
+	exit;
 }
 ?>
