@@ -944,6 +944,10 @@ function send_reminders(){
 					send_sms($row_leader['cell_phone'], $text);
 					
 					
+					// Debug
+					echo 'send_sms('.$row_leader['cell_phone'].', '.$text.');'.PHP_EOL;
+					
+					
 					// Database call
 					$query_assignment = "UPDATE assignments SET sent_reminder = 1 WHERE assignment_id = :assignment_id";
 					$statement_assignment = $PDO->prepare($query_assignment);
