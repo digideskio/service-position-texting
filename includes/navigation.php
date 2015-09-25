@@ -44,6 +44,10 @@
 				</li>
 				
 				<li>
+					<a href="/check_in.php"><i class="fa fa-check fa-fw"></i> Check In</a>
+				</li>
+				
+				<li>
 					<a href="/notify_number.php"><i class="fa fa-phone fa-fw"></i> Notify Number</a>
 				</li>
 			</ul>

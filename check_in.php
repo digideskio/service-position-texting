@@ -20,18 +20,16 @@
 		<div id="page-wrapper">
 			<div class="row">
 				<div class="col-lg-12">
-					<h1 class="page-header">Positions</h1>
+					<h1 class="page-header">Check In</h1>
 				</div>
 			</div>
 			
 			<div class="row">
 				<div class="col-xs-12">
-					<a href="position_add.php"><i class="fa fa-plus"></i> Add position</a><br><br>
-					
 					<?php
 					$last_name_and_date = '';
 					$count_tables = 0;
-					$rows = positionsLoadMultiple();
+					$rows = positionsLoadMultipleToday();
 					uasort($rows, 'cmp');
 					foreach($rows as $row)
 					{
@@ -50,13 +48,8 @@
 							echo '<table class="table table-striped table-bordered" style="width:auto;">';
 							echo '<thead>';
 								echo '<tr>';
-									echo '<th>Title</th>';
-									echo '<th>Leader</th>';
-									echo '<th>Send Reminder</th>';
-									echo '<th>Confirmed Text</th>';
+									echo '<th>Position</th>';
 									echo '<th>Was There</th>';
-									echo '<th>Edit</th>';
-									echo '<th>Delete</th>';
 								echo '</tr>';
 							echo '</thead>';
 							
@@ -66,45 +59,27 @@
 							$last_name_and_date = $name_and_date;
 						}
 						
+						
 						$row_assignment = assignmentsLoadSingleWithPositionID($row['position_id']);
 						$row_leader = leadersLoadSingle($row_assignment['leader_id']);
 						
 						echo '<tr>';
-							echo '<td>'.$row['title'].'</td>';
-							
 							echo '<td>';
+								echo '<strong>'.$row['title'].'</strong><br>';
+							
 								if($row_leader['first_name'].$row_leader['last_name'] != '')
 									echo $row_leader['first_name'].' '.$row_leader['last_name'];
 								else
 									echo '<em>No assignment...</em>';
 							echo '</td>';
 							
-							echo '<td>';
-								if($row['notify_night'])
-									echo 'Night before';
-								else
-									echo 'Morning of';
-							echo '</td>';
-							
-							echo '<td style="text-align:center;">';
-								if($row_leader['first_name'].$row_leader['last_name'] != '')
-									if($row_assignment['confirmed_text'] == 1)
-										echo '<i class="fa fa-check"></i>';
-									else if($row_assignment['confirmed_text'] == 2)
-										echo '<i class="fa fa-times"></i>';
-							echo '</td>';
-							
-							echo '<td style="text-align:center;">';
+							echo '<td style="text-align:center; vertical-align:middle; font-size:30px;">';
 								if($row_leader['first_name'].$row_leader['last_name'] != '')
 									if($row_assignment['was_there'])
-										echo '<a href="assignments_was_there_no.php?id='.$row_assignment['assignment_id'].'"><i class="fa fa-check"></i></a>';
+										echo '<a href="assignments_was_there_no.php?id='.$row_assignment['assignment_id'].'&check_in=1"><i class="fa fa-check"></i></a>';
 									else
-										echo '<a href="assignments_was_there_yes.php?id='.$row_assignment['assignment_id'].'"><i class="fa fa-times"></i></a>';
+										echo '<a href="assignments_was_there_yes.php?id='.$row_assignment['assignment_id'].'&check_in=1"><i class="fa fa-times"></i></a>';
 							echo '</td>';
-							
-							echo '<td style="text-align:center;"><a href="position_edit.php?id='.$row['position_id'].'"><i class="fa fa-pencil"></i></a></td>';
-							
-							echo '<td style="text-align:center;"><a href="position_delete.php?id='.$row['position_id'].'" class="confirm_first"><i class="fa fa-trash" style="color:#A00;"></i></a></td>';
 						echo '</tr>';
 					}
 					

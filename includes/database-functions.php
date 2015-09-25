@@ -544,6 +544,22 @@ function positionsLoadMultiple(){
 }
 
 
+// Function to load multiple positions for today
+function positionsLoadMultipleToday(){
+	// Set global
+	global $PDO;
+
+
+	// Database call
+	$query = "SELECT * FROM positions INNER JOIN events ON positions.event_id=events.event_id WHERE events.date = CURDATE()";
+	$statement = $PDO->query($query);
+
+
+	// Return
+	return $statement->fetchAll();
+}
+
+
 // Function to add an assignment
 function assignmentsAdd($position_id, $leader_id){
 	// Set global
