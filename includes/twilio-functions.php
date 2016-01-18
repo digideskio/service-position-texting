@@ -1,6 +1,6 @@
 <?php
 // Texting functions and includes
-require_once('/home/fwcm/public_html/fwcm_texting/includes/twilio/Services/Twilio.php');
+require_once('/home/fwcm/public_html/service-position-texting/includes/twilio/Services/Twilio.php');
 
 
 // Send an SMS message through Twilio
