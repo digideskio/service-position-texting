@@ -51,7 +51,8 @@
 							echo '<thead>';
 								echo '<tr>';
 									echo '<th>Title</th>';
-									echo '<th>Leader</th>';
+									echo '<th>Assignee</th>';
+									echo '<th>Type</th>';
 									echo '<th>Send Reminder</th>';
 									echo '<th>Confirmed Text</th>';
 									echo '<th>Was There</th>';
@@ -77,6 +78,15 @@
 									echo $row_leader['first_name'].' '.$row_leader['last_name'];
 								else
 									echo '<em>No assignment...</em>';
+							echo '</td>';
+							
+							echo '<td>';
+								if($row['type'] == 0)
+									echo 'Leaders only';
+								else if($row['type'] == 1)
+									echo 'Volunteers only';
+								else if($row['type'] == 2)
+									echo 'Leaders or volunteers';
 							echo '</td>';
 							
 							echo '<td>';

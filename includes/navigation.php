@@ -36,7 +36,7 @@
 				</li>
 				
 				<li>
-					<a href="/leaders.php"><i class="fa fa-users fa-fw"></i> Leaders</a>
+					<a href="/leaders.php"><i class="fa fa-users fa-fw"></i> People</a>
 				</li>
 				
 				<li>

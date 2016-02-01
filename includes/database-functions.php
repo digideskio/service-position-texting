@@ -126,7 +126,7 @@ function eventsFillPositions($event_id){
 	global $PDO;
 	
 	
-	// Calculate date
+	// Calculate begin/end date
 	if(date('Ymd') < date('Y0630'))
 	{
 		// First semester
@@ -141,12 +141,13 @@ function eventsFillPositions($event_id){
 	}
 	
 	
-	// Get leaders
+	// Get people
 	$query = "SELECT * FROM leaders WHERE active = 1 ORDER BY RAND()";
 	$statement = $PDO->query($query);
 	
 	while($row = $statement->fetch())
 	{
+		// Count times served
 		$query_count = "SELECT COUNT(*) FROM assignments INNER JOIN positions ON assignments.position_id=positions.position_id INNER JOIN events ON positions.event_id=events.event_id WHERE assignments.leader_id = :leader_id AND assignments.was_there = 1 AND events.date > '".$begin_date."' AND events.date < '".$end_date."'";
 		$statement_count = $PDO->prepare($query_count);
 		$params_count = array(
@@ -154,38 +155,39 @@ function eventsFillPositions($event_id){
 		);
 		$statement_count->execute($params_count);
 		
-		$leaders[$row['leader_id']] = $statement_count->fetchColumn();
-	}
-	
-	
-	// Sort by value, descending, keeping keys attached
-	asort($leaders);
-	
-	
-	$count_leaders = 0;
-	foreach($leaders as $key => $value)
-	{
-		// Make sure they're not already assigned to a position
-		$query = "SELECT COUNT(*) FROM assignments INNER JOIN positions ON assignments.position_id=positions.position_id WHERE positions.event_id = :event_id AND assignments.leader_id = :leader_id";
-		$statement = $PDO->prepare($query);
-		$params = array(
-			'event_id' => $event_id,
-			'leader_id' => $key
-		);
-		$statement->execute($params);
 		
-		if($statement->fetchColumn() == 0)
+		// Make sure they're not already assigned to a position
+		$query_check_assigned = "SELECT COUNT(*) FROM assignments INNER JOIN positions ON assignments.position_id=positions.position_id WHERE positions.event_id = :event_id AND assignments.leader_id = :leader_id";
+		$statement_check_assigned = $PDO->prepare($query_check_assigned);
+		$params_check_assigned = array(
+			'event_id' => $event_id,
+			'leader_id' => $row['leader_id']
+		);
+		$statement_check_assigned->execute($params_check_assigned);
+		
+		if($statement_check_assigned->fetchColumn() == 0)
 		{
-			$leaders_new[$count_leaders] = $key;
-			$count_leaders++;
+			// Add to array
+			$people[] = array(
+				'num_times_served' => $statement_count->fetchColumn(),
+				'leader_id' => $row['leader_id'],
+				'is_volunteer' => $row['is_volunteer'],
+			);
 		}
 	}
 	
 	
-	// Database call
-	$count_leaders = 0;
+	// Sort ascending by times served
+	usort($people, function($a, $b){
+		if($a['num_times_served'] == $b['num_times_served'])
+			return 0;
+		
+		return ($a['num_times_served'] < $b['num_times_served']) ? -1 : 1;
+	});
 	
-	$query = "SELECT * FROM positions INNER JOIN assignments ON positions.position_id=assignments.position_id WHERE positions.event_id = :event_id AND assignments.leader_id = 0";
+	
+	// Fill the leaders only roles
+	$query = "SELECT * FROM positions INNER JOIN assignments ON positions.position_id=assignments.position_id WHERE positions.event_id = :event_id AND assignments.leader_id = 0 ORDER BY positions.type ASC";
 	$statement = $PDO->prepare($query);
 	$params = array(
 		'event_id' => $event_id
@@ -194,21 +196,46 @@ function eventsFillPositions($event_id){
 	
 	while($row = $statement->fetch())
 	{
-		// Make sure there are enough leaders to fill the positions
-		if($count_leaders >= count($leaders_new))
-			continue;
+		// Reset
+		unset($person);
 		
-		// Assign the leader to this position
-		$query_update = "UPDATE assignments SET leader_id = :leader_id WHERE assignment_id = :assignment_id";
-		$statement_update = $PDO->prepare($query_update);
-		$params_update = array(
-			'leader_id' => $leaders_new[$count_leaders],
-			'assignment_id' => $row['assignment_id']
-		);
-		$statement_update->execute($params_update);
 		
-		// Increment
-		$count_leaders++;
+		// Choose a person
+		foreach($people as $key => $person)
+		{
+			if($row['type'] == 0 && $person['is_volunteer'] == 0)
+			{
+				$person['chosen'] = 1;
+				unset($people[$key]);
+				break;
+			}
+			else if($row['type'] == 1 && $person['is_volunteer'] == 1)
+			{
+				$person['chosen'] = 1;
+				unset($people[$key]);
+				break;
+			}
+			else if($row['type'] == 2)
+			{
+				$person['chosen'] = 1;
+				unset($people[$key]);
+				break;
+			}
+		}
+		
+		
+		// Check if person has been chosen
+		if($person['chosen'] == 1)
+		{
+			// Assign the person to this position
+			$query_update = "UPDATE assignments SET leader_id = :leader_id WHERE assignment_id = :assignment_id";
+			$statement_update = $PDO->prepare($query_update);
+			$params_update = array(
+				'leader_id' => $person['leader_id'],
+				'assignment_id' => $row['assignment_id']
+			);
+			$statement_update->execute($params_update);
+		}
 	}
 }
 
@@ -258,33 +285,34 @@ function eventsSendConfirmationTexts($event_id){
 
 
 // Function to add a leader
-function leadersAdd($first_name, $last_name, $cell_phone, $email, $active){
+function leadersAdd($first_name, $last_name, $cell_phone, $email, $is_volunteer, $active){
 	// Set global
 	global $PDO;
 
 
 	// Database call
-	$query = "INSERT INTO leaders SET first_name = :first_name, last_name = :last_name, cell_phone = :cell_phone, email = :email, active = :active";
+	$query = "INSERT INTO leaders SET first_name = :first_name, last_name = :last_name, cell_phone = :cell_phone, email = :email, is_volunteer = :is_volunteer, active = :active";
 	$statement = $PDO->prepare($query);
 	$params = array(
 		'first_name' => $first_name,
 		'last_name' => $last_name,
 		'cell_phone' => preg_replace('/[^0-9]/', '', $cell_phone),
 		'email' => $email,
-		'active' => $active
+		'is_volunteer' => $is_volunteer,
+		'active' => $active,
 	);
 	$statement->execute($params);
 }
 
 
 // Function to edit a leader
-function leadersEdit($leader_id, $first_name, $last_name, $cell_phone, $email, $active){
+function leadersEdit($leader_id, $first_name, $last_name, $cell_phone, $email, $is_volunteer, $active){
 	// Set global
 	global $PDO;
 
 
 	// Database call
-	$query = "UPDATE leaders SET first_name = :first_name, last_name = :last_name, cell_phone = :cell_phone, email = :email, active = :active WHERE leader_id = :leader_id";
+	$query = "UPDATE leaders SET first_name = :first_name, last_name = :last_name, cell_phone = :cell_phone, email = :email, is_volunteer = :is_volunteer, active = :active WHERE leader_id = :leader_id";
 	$statement = $PDO->prepare($query);
 	$params = array(
 		'first_name' => $first_name,
@@ -292,7 +320,8 @@ function leadersEdit($leader_id, $first_name, $last_name, $cell_phone, $email, $
 		'cell_phone' => preg_replace('/[^0-9]/', '', $cell_phone),
 		'leader_id' => $leader_id,
 		'email' => $email,
-		'active' => ($active) ? 1 : 0
+		'is_volunteer' => $is_volunteer,
+		'active' => ($active) ? 1 : 0,
 	);
 	$statement->execute($params);
 }
@@ -445,18 +474,19 @@ function leadersCountTimesWasThereThisSemester($leader_id){
 
 
 // Function to add a position
-function positionsAdd($event_id, $title, $notify_night, $leader_id = 0){
+function positionsAdd($event_id, $title, $notify_night, $type, $leader_id = 0){
 	// Set global
 	global $PDO;
 
 
 	// Database call
-	$query = "INSERT INTO positions SET event_id = :event_id, title = :title, notify_night = :notify_night";
+	$query = "INSERT INTO positions SET event_id = :event_id, title = :title, notify_night = :notify_night, type = :type";
 	$statement = $PDO->prepare($query);
 	$params = array(
 		'event_id' => $event_id,
 		'title' => $title,
 		'notify_night' => $notify_night,
+		'type' => $type,
 	);
 	$statement->execute($params);
 	$new_position_id = $PDO->lastInsertId();
@@ -468,18 +498,19 @@ function positionsAdd($event_id, $title, $notify_night, $leader_id = 0){
 
 
 // Function to edit a position
-function positionsEdit($position_id, $event_id, $title, $notify_night, $leader_id){
+function positionsEdit($position_id, $event_id, $title, $notify_night, $type, $leader_id){
 	// Set global
 	global $PDO;
 
 
 	// Database call
-	$query = "UPDATE positions SET event_id = :event_id, title = :title, notify_night = :notify_night WHERE position_id = :position_id";
+	$query = "UPDATE positions SET event_id = :event_id, title = :title, notify_night = :notify_night, type = :type WHERE position_id = :position_id";
 	$statement = $PDO->prepare($query);
 	$params = array(
 		'event_id' => $event_id,
 		'title' => $title,
 		'notify_night' => $notify_night,
+		'type' => $type,
 		'position_id' => $position_id,
 	);
 	$statement->execute($params);
